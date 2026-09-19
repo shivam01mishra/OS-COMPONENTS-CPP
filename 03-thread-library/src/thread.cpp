@@ -59,4 +59,17 @@ void yield() {
     swapcontext(&g_current->context, g_caller);
 }
 
+void exit() {
+    g_current->state = ThreadState::Terminated;
+    swapcontext(&g_current->context, g_caller);
+    // Unreachable under correct use: the scheduler skips Terminated
+    // threads, so nothing will ever swap back into this context again.
+}
+
+void join(const Thread& target) {
+    while (target.state != ThreadState::Terminated) {
+        yield();
+    }
+}
+
 } // namespace threading

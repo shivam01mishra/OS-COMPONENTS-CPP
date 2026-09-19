@@ -16,13 +16,14 @@ namespace threading {
 // calls yield()", decided by the thread itself, not imposed by a timer.
 class Scheduler {
 public:
-    // Registers a new thread to run once run() is called. Threads are
-    // heap-allocated (via unique_ptr) so their addresses stay stable as
-    // more threads are spawned -- a vector of Thread by value would
-    // relocate existing threads on reallocation, which would corrupt
-    // any context currently mid-execution. Real kernels heap-allocate
-    // task structs for the same reason: other code holds pointers to them.
-    void spawn(std::function<void()> entry);
+    // Registers a new thread to run once run() is called, and returns a
+    // reference to it -- e.g. so another thread can later join() on it.
+    // Threads are heap-allocated (via unique_ptr) so their addresses
+    // stay stable as more are spawned -- a vector of Thread by value
+    // would relocate existing threads on reallocation, invalidating
+    // exactly the kind of reference this function hands out. Real
+    // kernels heap-allocate task structs for the same reason.
+    Thread& spawn(std::function<void()> entry);
 
     // Runs every spawned thread to completion, round-robin. Must be
     // called after all spawn() calls -- this simple scheduler doesn't

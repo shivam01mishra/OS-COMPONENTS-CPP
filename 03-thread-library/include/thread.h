@@ -45,4 +45,25 @@ void resume(Thread& t, ucontext_t* from);
 // thread, it must call yield() itself to give up the CPU.
 void yield();
 
+// Called from inside a running thread's own entry function to terminate
+// it immediately -- skipping any code after this call, even code in
+// functions further down the call stack. Mirrors pthread_exit(): like
+// the real thing, this does NOT unwind the C++ call stack, so any local
+// objects with non-trivial destructors on that stack never get
+// destroyed. A normal return from entry() doesn't have this problem.
+//
+// Not marked [[noreturn]]: that would be accurate only as long as the
+// scheduler never resumes a Terminated thread, and asserting it via the
+// attribute would turn a violation of that invariant into undefined
+// behavior instead of a normal (debuggable) bug.
+void exit();
+
+// Called from inside one thread to block until `target` terminates.
+// There's no real blocking here -- no OS wait queue, no removal from
+// any ready list -- it's just a loop that yields and rechecks, relying
+// on the scheduler to keep giving `target` turns in the meantime. A
+// real join() suspends the caller without spending any CPU time on it;
+// this one busy-waits, spending one scheduler turn per check.
+void join(const Thread& target);
+
 } // namespace threading
