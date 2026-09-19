@@ -2,12 +2,11 @@
 #include <cstdio>
 #include <string>
 #include <vector>
+#include "scheduler.h"
 #include "thread.h"
 
-using threading::Thread;
-using threading::ThreadState;
+using threading::Scheduler;
 
-static ucontext_t main_ctx;
 static std::vector<std::string> trace; // records what actually ran, in order
 
 static void log(const std::string& msg) {
@@ -16,44 +15,50 @@ static void log(const std::string& msg) {
 }
 
 int main() {
-    Thread a([]{
-        for (int i = 1; i <= 3; ++i) {
+    Scheduler scheduler;
+
+    // Different step counts, deliberately: it's what actually exercises
+    // round-robin behavior -- threads finishing at different times, and
+    // the scheduler correctly skipping terminated ones instead of
+    // resuming them again.
+    scheduler.spawn([]{
+        for (int i = 1; i <= 2; ++i) {
             log("[Thread A] step " + std::to_string(i));
             threading::yield();
         }
         log("[Thread A] done");
-    }, &main_ctx);
+    });
 
-    Thread b([]{
+    scheduler.spawn([]{
         for (int i = 1; i <= 3; ++i) {
             log("[Thread B] step " + std::to_string(i));
             threading::yield();
         }
         log("[Thread B] done");
-    }, &main_ctx);
+    });
 
-    // No scheduler yet -- main manually alternates between the two
-    // threads. The point of this milestone is proving that resume()
-    // and yield() correctly suspend and resume execution mid-function,
-    // not building a real dispatch policy.
-    while (a.state != ThreadState::Terminated || b.state != ThreadState::Terminated) {
-        if (a.state != ThreadState::Terminated) threading::resume(a, &main_ctx);
-        if (b.state != ThreadState::Terminated) threading::resume(b, &main_ctx);
-    }
+    scheduler.spawn([]{
+        for (int i = 1; i <= 1; ++i) {
+            log("[Thread C] step " + std::to_string(i));
+            threading::yield();
+        }
+        log("[Thread C] done");
+    });
 
-    log("[main] both threads finished");
+    scheduler.run();
+    log("[main] all threads finished");
 
-    // If context switching were broken -- e.g. threads sharing a stack,
-    // or resuming from the wrong saved point -- this exact interleaving
-    // could not happen: each thread's loop counter `i` only survives
-    // across yield() calls because it lives on that thread's own,
-    // independent stack.
+    // Expected round-robin trace (spawn order A, B, C; skip terminated):
+    //   round 1: A1 B1 C1
+    //   round 2: A2 B2 (C finishes -> "C done")
+    //   round 3: (A finishes -> "A done") B3
+    //   round 4: (B finishes -> "B done")
     std::vector<std::string> expected = {
-        "[Thread A] step 1", "[Thread B] step 1",
-        "[Thread A] step 2", "[Thread B] step 2",
-        "[Thread A] step 3", "[Thread B] step 3",
-        "[Thread A] done",   "[Thread B] done",
-        "[main] both threads finished",
+        "[Thread A] step 1", "[Thread B] step 1", "[Thread C] step 1",
+        "[Thread A] step 2", "[Thread B] step 2", "[Thread C] done",
+        "[Thread A] done",   "[Thread B] step 3",
+        "[Thread B] done",
+        "[main] all threads finished",
     };
     assert(trace == expected);
 
