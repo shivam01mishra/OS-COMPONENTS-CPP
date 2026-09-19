@@ -20,9 +20,9 @@ os-components-cpp/
 ├── 01-memory-manager/      # Memory allocation & management
 ├── 02-process-scheduler/   # CPU scheduling algorithms
 ├── 03-thread-library/      # User-space threading (fibers/coroutines)
-├── 04-virtual-memory/      # Paging, page tables, TLB simulation
-├── 05-file-system/         # A simple file system (FAT or ext2-like)
-├── 06-ipc/                 # Inter-process communication (pipes, semaphores, queues)
+├── 04-ipc/                 # Inter-process communication (pipes, semaphores, queues)
+├── 05-virtual-memory/      # Paging, page tables, TLB simulation
+├── 06-file-system/         # A simple file system (FAT or ext2-like)
 ├── 07-shell/               # A minimal Unix-like shell
 ├── 08-bootloader/          # (Advanced) x86 bootloader in C++ + ASM
 └── docs/                   # Notes, diagrams, references
@@ -54,27 +54,27 @@ Implement cooperative user-space threads without using `pthreads`.
 - Simple mutex (spinlock and sleep-based)
 - **Concepts:** stack frames, execution context, synchronization primitives
 
-### 4. Virtual Memory Simulator
-Simulate paging and address translation.
-- Page table walk (single-level and multi-level)
-- TLB (Translation Lookaside Buffer) simulation
-- Page replacement algorithms: FIFO, LRU, Optimal, Clock
-- **Concepts:** virtual vs physical addresses, page faults, working set
-
-### 5. File System
-Build a simple file system stored in a flat binary file.
-- Superblock, inode table, data blocks
-- Create, read, write, delete files and directories
-- Basic journaling for crash recovery
-- **Concepts:** inodes, block allocation, directory entries, VFS layer
-
-### 6. Inter-Process Communication (IPC)
+### 4. Inter-Process Communication (IPC)
 Implement classic IPC mechanisms.
 - Named and unnamed pipes
 - Message queues (FIFO)
 - Shared memory segments
 - Semaphores (counting and binary)
 - **Concepts:** producer-consumer problem, deadlock, race conditions
+
+### 5. Virtual Memory Simulator
+Simulate paging and address translation.
+- Page table walk (single-level and multi-level)
+- TLB (Translation Lookaside Buffer) simulation
+- Page replacement algorithms: FIFO, LRU, Optimal, Clock
+- **Concepts:** virtual vs physical addresses, page faults, working set
+
+### 6. File System
+Build a simple file system stored in a flat binary file.
+- Superblock, inode table, data blocks
+- Create, read, write, delete files and directories
+- Basic journaling for crash recovery
+- **Concepts:** inodes, block allocation, directory entries, VFS layer
 
 ### 7. Shell
 Write a minimal Unix-like command interpreter.
