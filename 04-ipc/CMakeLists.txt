@@ -9,3 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # the whole point is two real OS processes communicating.
 add_executable(01_pipe src/01_pipe.cpp)
 target_compile_options(01_pipe PRIVATE -Wall -Wextra -Wpedantic -g)
+
+add_executable(02_message_queue src/02_message_queue.cpp)
+target_compile_options(02_message_queue PRIVATE -Wall -Wextra -Wpedantic -g)
+target_link_libraries(02_message_queue rt)
